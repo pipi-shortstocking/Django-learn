@@ -20,3 +20,15 @@ def todo_post(request):
     else:
         form = TodoForm()
     return render(request, 'todo/todo_post.html', {'form': form})
+
+def todo_edit(request, pk):
+    todo = Todo.objects.get(id=pk)
+    if request.method == 'POST':
+        form = TodoForm(request.POST, instance=todo)
+        if form.is_valid():
+            todo = form.save(commit=False)
+            todo.save()
+            return redirect('todo_list')
+    else:
+        form = TodoForm(instance=todo)
+    return render(request, 'todo/todo_post.html', {'form': form})
