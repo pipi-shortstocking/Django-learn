@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate # Django의 기본 authenticate 함수, 우리가 설정한 DefaultAuthBackend인 TokenAuth 방식으로 유저 인증
 
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
@@ -39,3 +40,17 @@ class RegisterSerializer(serializers.ModelSerializer): # 회원가입 시리얼�
         user.save()
         token = Token.objects.create(user=user)
         return user
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+    # write_only 옵션을 통해 클라이언트 -> 서버 방향의 역직렬화 가능, 서버 -> 클라이언트 방향의 직렬화 불가능
+
+    def validate(self, data):
+        # **은 파이썬에서 딕셔너리의 key-value 쌍을 함수의 키워드 인자로 풀어서 전달한다는 의미
+        # 즉, data 딕셔너리의 값을 username=..., password=... 이런 식으로 authenticate 함수에 넘김
+        user = authenticate(**data)
+        if user:
+            token = Token.objects.get(user=user) # 토큰에서 유저를 찾아서 응답
+            return token
+        raise serializers.ValidationError({"error": "Unable to log in with provided credentials."})
