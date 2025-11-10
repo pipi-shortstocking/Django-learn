@@ -6,6 +6,8 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import UniqueValidator
 
+from .models import Profile
+
 class RegisterSerializer(serializers.ModelSerializer): # 회원가입 시리얼라이저
     email = serializers.EmailField(
         required=True,
@@ -54,3 +56,8 @@ class LoginSerializer(serializers.Serializer):
             token = Token.objects.get(user=user) # 토큰에서 유저를 찾아서 응답
             return token
         raise serializers.ValidationError({"error": "Unable to log in with provided credentials."})
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('nickname', 'position', 'subjects', 'image')
